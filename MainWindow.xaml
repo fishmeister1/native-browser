@@ -219,10 +219,17 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
-                        <!-- Main content area (empty for now) -->
-                        <Grid Grid.Row="0">
-                            <!-- Content will be added later -->
-                        </Grid>
+                        <!-- AI Chat Area -->
+                        <ScrollViewer Grid.Row="0" 
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     Margin="12,12,12,8"
+                                     x:Name="ChatScrollViewer">
+                            <StackPanel x:Name="ChatMessagesPanel" 
+                                       Orientation="Vertical">
+                                <!-- AI messages will be added here dynamically -->
+                            </StackPanel>
+                        </ScrollViewer>
                         
                         <!-- Floating Input Field -->
                         <Border Grid.Row="1" 

@@ -47,6 +47,10 @@
             "Microsoft.Web.WebView2": {
               "target": "Package",
               "version": "[1.0.2045.28, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
             }
           },
           "imports": [

@@ -29,3 +29,4 @@ C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\refint\
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\NativeBrowser.pdb
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\NativeBrowser.genruntimeconfig.cache
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\ref\NativeBrowser.dll
+C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Newtonsoft.Json.dll

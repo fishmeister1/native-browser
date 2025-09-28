@@ -1,3 +1,5 @@
-2025/09/28-14:50:16.203 9c8 Reusing MANIFEST C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\NativeBrowser.exe.WebView2\EBWebView\Default\Local Storage\leveldb/MANIFEST-000001
-2025/09/28-14:50:16.214 9c8 Recovering log #7
-2025/09/28-14:50:16.220 9c8 Reusing old log C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\NativeBrowser.exe.WebView2\EBWebView\Default\Local Storage\leveldb/000007.log 
+2025/09/28-15:29:09.838 5ba4 Reusing MANIFEST C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\NativeBrowser.exe.WebView2\EBWebView\Default\Local Storage\leveldb/MANIFEST-000001
+2025/09/28-15:29:09.852 5ba4 Recovering log #7
+2025/09/28-15:29:09.860 5ba4 Reusing old log C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\NativeBrowser.exe.WebView2\EBWebView\Default\Local Storage\leveldb/000007.log 
+2025/09/28-15:30:39.654 5ba4 Level-0 table #11: started
+2025/09/28-15:30:39.672 5ba4 Level-0 table #11: 40985 bytes OK

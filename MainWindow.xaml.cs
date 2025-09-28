@@ -13,6 +13,9 @@ using System.Windows.Shapes;
 using System.Globalization;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using NativeBrowser.Services;
+using Newtonsoft.Json;
+using System.Windows.Documents;
 
 namespace NativeBrowser
 {
@@ -26,6 +29,8 @@ namespace NativeBrowser
         private List<TabItem> _tabs = new List<TabItem>();
         private TabItem _currentTab = null;
         private bool _isSidePanelOpen = false;
+        private GroqAIService _aiService;
+        private string _pendingJavaScript = null;
 
         public MainWindow()
         {
@@ -49,6 +54,16 @@ namespace NativeBrowser
             
             // Set up keyboard shortcuts
             this.KeyDown += MainWindow_KeyDown;
+            
+            // Initialize AI service
+            try
+            {
+                _aiService = new GroqAIService();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"AI Service initialization failed: {ex.Message}";
+            }
         }
 
         #region Window Dragging and Resizing
@@ -395,15 +410,402 @@ namespace NativeBrowser
             SendMessage();
         }
         
-        private void SendMessage()
+        private async void SendMessage()
         {
             if (!string.IsNullOrWhiteSpace(MessageInput.Text) && MessageInput.Text != "Message Optica...")
             {
-                StatusText.Text = $"Message sent: {MessageInput.Text}";
+                string userMessage = MessageInput.Text;
+                
+                // Add user message to chat
+                AddUserMessage(userMessage);
+                
+                // Clear input
                 MessageInput.Text = "";
                 MessageInput.Height = 34;
                 MessageInput.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
-                MessageInput_LostFocus(null, null); // Reset placeholder
+                MessageInput_LostFocus(null, null);
+                
+                // Process with AI
+                await ProcessAIMessage(userMessage);
+            }
+        }
+
+        #endregion
+        
+        #region AI Integration
+        
+        private readonly string[] _browserControlKeywords = { "show", "play", "research", "find" };
+        
+        private bool IsBrowserControlRequest(string message)
+        {
+            var lowerMessage = message.ToLower();
+            return Array.Exists(_browserControlKeywords, keyword => lowerMessage.Contains(keyword));
+        }
+        
+        private async Task ProcessAIMessage(string userMessage)
+        {
+            if (_aiService == null)
+            {
+                AddAIMessage("AI service not available", "Error");
+                return;
+            }
+            
+            try
+            {
+                if (IsBrowserControlRequest(userMessage))
+                {
+                    // Highlight keywords in user message
+                    HighlightBrowserKeywords(userMessage);
+                    
+                    // Process as browser control request
+                    StatusText.Text = "AI is thinking...";
+                    string response = await _aiService.GetBrowserActionResponse(userMessage);
+                    
+                    // Clean the response and check if it's valid JSON
+                    string cleanedResponse = response.Trim();
+                    if (cleanedResponse.StartsWith("```json"))
+                    {
+                        cleanedResponse = cleanedResponse.Substring(7);
+                    }
+                    if (cleanedResponse.EndsWith("```"))
+                    {
+                        cleanedResponse = cleanedResponse.Substring(0, cleanedResponse.Length - 3);
+                    }
+                    cleanedResponse = cleanedResponse.Trim();
+                    
+                    // Add cleaned response for debugging
+                    AddAIMessage($"AI Response: {cleanedResponse}", "Debug");
+                    
+                    // Check if response starts with valid JSON
+                    if (!cleanedResponse.StartsWith("{"))
+                    {
+                        AddAIMessage("AI did not return valid JSON format. Creating fallback action.", "Error");
+                        
+                        // Create fallback action based on user message
+                        var fallbackAction = CreateFallbackAction(userMessage);
+                        ExecuteFallbackAction(fallbackAction);
+                        return;
+                    }
+                    
+                    // Parse JSON response
+                    try
+                    {
+                        var actionResponse = JsonConvert.DeserializeObject<BrowserActionResponse>(cleanedResponse);
+                        
+                        if (actionResponse == null)
+                        {
+                            AddAIMessage("Failed to parse AI response as JSON", "Error");
+                            AddAIMessage(response, "Response");
+                            return;
+                        }
+                        
+                        // Display AI thinking, action, and explanation
+                        if (!string.IsNullOrEmpty(actionResponse.Thinking))
+                            AddAIMessage(actionResponse.Thinking, "Thinking");
+                        
+                        if (!string.IsNullOrEmpty(actionResponse.Action))
+                            AddAIMessage(actionResponse.Action, "Action");
+                        
+                        if (!string.IsNullOrEmpty(actionResponse.Explanation))
+                            AddAIMessage(actionResponse.Explanation, "Reasoning");
+                        
+                        // Navigate to URL if provided
+                        if (!string.IsNullOrEmpty(actionResponse.Url))
+                        {
+                            AddAIMessage($"Attempting navigation to: {actionResponse.Url}", "Debug");
+                            NavigateToUrl(actionResponse.Url);
+                            
+                            // Queue JavaScript for execution after navigation
+                            if (!string.IsNullOrEmpty(actionResponse.Javascript))
+                            {
+                                AddAIMessage($"Will execute JavaScript after page loads: {actionResponse.Javascript}", "Debug");
+                                _pendingJavaScript = actionResponse.Javascript;
+                            }
+                            
+                            StatusText.Text = $"Navigating to: {actionResponse.Url}";
+                        }
+                        else
+                        {
+                            AddAIMessage("No URL provided in AI response", "Error");
+                        }
+                    }
+                    catch (Exception parseEx)
+                    {
+                        // Fallback if JSON parsing fails
+                        AddAIMessage($"JSON Parse Error: {parseEx.Message}", "Error");
+                        AddAIMessage(response, "Action");
+                    }
+                }
+                else
+                {
+                    // Process as Q&A request
+                    StatusText.Text = "AI is responding...";
+                    string response = await _aiService.GetQAResponse(userMessage);
+                    AddAIMessage(response, "Response");
+                    StatusText.Text = "AI response complete";
+                }
+            }
+            catch (Exception ex)
+            {
+                AddAIMessage($"Error: {ex.Message}", "Error");
+                StatusText.Text = "AI request failed";
+            }
+        }
+        
+        private void AddUserMessage(string message)
+        {
+            var messageBlock = new TextBlock
+            {
+                Text = $"You: {message}",
+                Foreground = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)),
+                FontSize = 13,
+                FontFamily = new FontFamily("Segoe UI"),
+                Margin = new Thickness(0, 0, 0, 8),
+                TextWrapping = TextWrapping.Wrap
+            };
+            
+            ChatMessagesPanel.Children.Add(messageBlock);
+            ScrollToBottom();
+        }
+        
+        private void AddAIMessage(string message, string messageType)
+        {
+            var headerColor = messageType switch
+            {
+                "Thinking" => Color.FromRgb(0x4A, 0x9E, 0xFF), // Blue
+                "Action" => Color.FromRgb(0x4C, 0xAF, 0x50),   // Green
+                "Reasoning" => Color.FromRgb(0xFF, 0x98, 0x00), // Orange
+                "Response" => Color.FromRgb(0xFF, 0xFF, 0xFF),  // White
+                "Error" => Color.FromRgb(0xF4, 0x43, 0x36),     // Red
+                "Debug" => Color.FromRgb(0x9C, 0x27, 0xB0),     // Purple
+                _ => Color.FromRgb(0xFF, 0xFF, 0xFF)
+            };
+            
+            var headerBlock = new TextBlock
+            {
+                Text = $"AI {messageType}:",
+                Foreground = new SolidColorBrush(headerColor),
+                FontSize = 12,
+                FontFamily = new FontFamily("Segoe UI"),
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 8, 0, 2)
+            };
+            
+            var messageBlock = new TextBlock
+            {
+                Text = message,
+                Foreground = new SolidColorBrush(Colors.White),
+                FontSize = 13,
+                FontFamily = new FontFamily("Segoe UI"),
+                Margin = new Thickness(0, 0, 0, 8),
+                TextWrapping = TextWrapping.Wrap
+            };
+            
+            ChatMessagesPanel.Children.Add(headerBlock);
+            ChatMessagesPanel.Children.Add(messageBlock);
+            ScrollToBottom();
+        }
+        
+        private void HighlightBrowserKeywords(string message)
+        {
+            // Find the last user message and update it with highlighted keywords
+            if (ChatMessagesPanel.Children.Count > 0)
+            {
+                var lastMessage = ChatMessagesPanel.Children[ChatMessagesPanel.Children.Count - 1] as TextBlock;
+                if (lastMessage != null && lastMessage.Text.StartsWith("You:"))
+                {
+                    // Create new TextBlock with highlighted keywords
+                    var highlightedBlock = new TextBlock
+                    {
+                        FontSize = 13,
+                        FontFamily = new FontFamily("Segoe UI"),
+                        Margin = new Thickness(0, 0, 0, 8),
+                        TextWrapping = TextWrapping.Wrap
+                    };
+                    
+                    var run1 = new Run("You: ") { Foreground = new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA)) };
+                    highlightedBlock.Inlines.Add(run1);
+                    
+                    string[] words = message.Split(' ');
+                    for (int i = 0; i < words.Length; i++)
+                    {
+                        var word = words[i];
+                        var isKeyword = _browserControlKeywords.Any(k => word.ToLower().Contains(k.ToLower()));
+                        
+                        var run = new Run(word)
+                        {
+                            Foreground = isKeyword ? 
+                                new SolidColorBrush(Color.FromRgb(0x21, 0x96, 0xF3)) : // Blue for keywords
+                                new SolidColorBrush(Color.FromRgb(0xAA, 0xAA, 0xAA))   // Gray for normal text
+                        };
+                        
+                        highlightedBlock.Inlines.Add(run);
+                        
+                        if (i < words.Length - 1)
+                            highlightedBlock.Inlines.Add(new Run(" "));
+                    }
+                    
+                    // Replace the last message
+                    ChatMessagesPanel.Children.RemoveAt(ChatMessagesPanel.Children.Count - 1);
+                    ChatMessagesPanel.Children.Add(highlightedBlock);
+                }
+            }
+        }
+        
+        private void ScrollToBottom()
+        {
+            ChatScrollViewer.ScrollToEnd();
+        }
+        
+        private BrowserActionResponse CreateFallbackAction(string userMessage)
+        {
+            var lowerMessage = userMessage.ToLower();
+            
+            // Determine action based on keywords
+            if (lowerMessage.Contains("video") || lowerMessage.Contains("play"))
+            {
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "play", "video", "show" });
+                return new BrowserActionResponse
+                {
+                    Thinking = $"User wants to watch a video about '{searchTerm}'. I'll search YouTube for this.",
+                    Action = $"Searching YouTube for '{searchTerm}' videos",
+                    Url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(searchTerm)}",
+                    Javascript = "",
+                    Explanation = $"YouTube is the best platform for finding videos about '{searchTerm}'"
+                };
+            }
+            else if (lowerMessage.Contains("research") || lowerMessage.Contains("learn") || lowerMessage.Contains("information"))
+            {
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "research", "learn", "information", "about" });
+                return new BrowserActionResponse
+                {
+                    Thinking = $"User wants to research '{searchTerm}'. I'll use Wikipedia for reliable information.",
+                    Action = $"Looking up '{searchTerm}' on Wikipedia",
+                    Url = $"https://en.wikipedia.org/wiki/{Uri.EscapeDataString(searchTerm.Replace(" ", "_"))}",
+                    Javascript = "",
+                    Explanation = $"Wikipedia provides comprehensive information about '{searchTerm}'"
+                };
+            }
+            else if (lowerMessage.Contains("find") || lowerMessage.Contains("search"))
+            {
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "find", "search", "look", "for" });
+                return new BrowserActionResponse
+                {
+                    Thinking = $"User wants to find information about '{searchTerm}'. I'll use Google search.",
+                    Action = $"Searching Google for '{searchTerm}'",
+                    Url = $"https://www.google.com/search?q={Uri.EscapeDataString(searchTerm)}",
+                    Javascript = "",
+                    Explanation = $"Google search will provide comprehensive results for '{searchTerm}'"
+                };
+            }
+            else if (lowerMessage.Contains("show") || lowerMessage.Contains("display"))
+            {
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "show", "display", "me" });
+                return new BrowserActionResponse
+                {
+                    Thinking = $"User wants to see '{searchTerm}'. I'll search Google Images for visual content.",
+                    Action = $"Showing images of '{searchTerm}'",
+                    Url = $"https://www.google.com/search?tbm=isch&q={Uri.EscapeDataString(searchTerm)}",
+                    Javascript = "",
+                    Explanation = $"Google Images will show visual content related to '{searchTerm}'"
+                };
+            }
+            else
+            {
+                // Default to Google search
+                return new BrowserActionResponse
+                {
+                    Thinking = $"User asked: '{userMessage}'. I'll search Google for this query.",
+                    Action = $"Searching Google for '{userMessage}'",
+                    Url = $"https://www.google.com/search?q={Uri.EscapeDataString(userMessage)}",
+                    Javascript = "",
+                    Explanation = "Using Google search as the default action for this request"
+                };
+            }
+        }
+        
+        private string ExtractSearchTerm(string message, string[] keywords)
+        {
+            var lowerMessage = message.ToLower();
+            
+            // Find the keyword and extract text after it
+            foreach (var keyword in keywords)
+            {
+                var keywordIndex = lowerMessage.IndexOf(keyword);
+                if (keywordIndex >= 0)
+                {
+                    var afterKeyword = message.Substring(keywordIndex + keyword.Length).Trim();
+                    
+                    // Remove common words from the beginning
+                    var commonWords = new[] { "a", "an", "the", "me", "about", "of", "for", "on" };
+                    var words = afterKeyword.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    
+                    var filteredWords = words.Where(w => !commonWords.Contains(w.ToLower())).ToArray();
+                    
+                    if (filteredWords.Length > 0)
+                    {
+                        return string.Join(" ", filteredWords);
+                    }
+                }
+            }
+            
+            // If no keyword found, use the whole message (cleaned)
+            var allWords = message.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var commonStopWords = new[] { "can", "you", "please", "i", "want", "to", "would", "like" };
+            var cleanedWords = allWords.Where(w => !commonStopWords.Contains(w.ToLower())).ToArray();
+            
+            return cleanedWords.Length > 0 ? string.Join(" ", cleanedWords) : message;
+        }
+        
+        private void ExecuteFallbackAction(BrowserActionResponse action)
+        {
+            // Display the fallback action parts
+            if (!string.IsNullOrEmpty(action.Thinking))
+                AddAIMessage(action.Thinking, "Thinking");
+            
+            if (!string.IsNullOrEmpty(action.Action))
+                AddAIMessage(action.Action, "Action");
+            
+            if (!string.IsNullOrEmpty(action.Explanation))
+                AddAIMessage(action.Explanation, "Reasoning");
+            
+            // Navigate to URL
+            if (!string.IsNullOrEmpty(action.Url))
+            {
+                AddAIMessage($"Navigating to: {action.Url}", "Debug");
+                NavigateToUrl(action.Url);
+                StatusText.Text = $"Navigating to: {action.Url}";
+            }
+        }
+        
+        private async Task ExecutePendingJavaScript()
+        {
+            if (string.IsNullOrEmpty(_pendingJavaScript))
+                return;
+                
+            var javascript = _pendingJavaScript;
+            _pendingJavaScript = null; // Clear pending JavaScript
+            
+            var webView = _currentTab?.WebView ?? WebView;
+            if (webView?.CoreWebView2 != null)
+            {
+                try
+                {
+                    // Add a delay to ensure page content is fully loaded
+                    await Task.Delay(3000);
+                    
+                    AddAIMessage($"Executing JavaScript: {javascript}", "Debug");
+                    var result = await webView.CoreWebView2.ExecuteScriptAsync(javascript);
+                    AddAIMessage($"JavaScript executed successfully. Result: {result}", "Debug");
+                }
+                catch (Exception ex)
+                {
+                    AddAIMessage($"JavaScript execution failed: {ex.Message}", "Error");
+                }
+            }
+            else
+            {
+                AddAIMessage("WebView2 not ready for JavaScript execution", "Error");
             }
         }
 
@@ -477,13 +879,19 @@ namespace NativeBrowser
             }
         }
 
-        private void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        private async void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (_currentTab?.WebView == sender)
             {
                 if (e.IsSuccess)
                 {
                     StatusText.Text = "Page loaded successfully";
+                    
+                    // Execute pending JavaScript if any
+                    if (!string.IsNullOrEmpty(_pendingJavaScript))
+                    {
+                        await ExecutePendingJavaScript();
+                    }
                 }
                 else
                 {
@@ -816,5 +1224,11 @@ namespace NativeBrowser
         }
 
         #endregion
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _aiService?.Dispose();
+            base.OnClosed(e);
+        }
     }
 }
