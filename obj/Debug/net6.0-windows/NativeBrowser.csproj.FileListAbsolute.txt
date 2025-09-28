@@ -1,0 +1,3 @@
+C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net6.0-windows\NativeBrowser.csproj.AssemblyReference.cache
+C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net6.0-windows\NativeBrowser_Content.g.cs
+C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net6.0-windows\NativeBrowser_MarkupCompile.cache

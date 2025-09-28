@@ -1,0 +1,3 @@
+@echo off
+echo Running Native Browser Application...
+dotnet run

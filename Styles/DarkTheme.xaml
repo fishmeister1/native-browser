@@ -1,0 +1,174 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Color Brushes - Dark Gray Theme -->
+    
+    <!-- Primary Dark Grays -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#2D2D30"/>
+    <SolidColorBrush x:Key="WindowBorderBrush" Color="#3E3E42"/>
+    
+    <!-- Title Bar Colors -->
+    <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="TitleForegroundBrush" Color="#CCCCCC"/>
+    
+    <!-- Content Area Colors -->
+    <SolidColorBrush x:Key="ContentBackgroundBrush" Color="#252526"/>
+    <SolidColorBrush x:Key="ContentForegroundBrush" Color="#CCCCCC"/>
+    
+    <!-- Navigation Bar Colors -->
+    <SolidColorBrush x:Key="NavigationBarBackgroundBrush" Color="#2D2D30"/>
+    <SolidColorBrush x:Key="NavigationButtonForegroundBrush" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="NavigationButtonHoverBackgroundBrush" Color="#3E3E42"/>
+    
+    <!-- Browser Content Colors -->
+    <SolidColorBrush x:Key="BrowserContentBackgroundBrush" Color="#1E1E1E"/>
+    
+    <!-- Status Bar Colors -->
+    <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#007ACC"/>
+    <SolidColorBrush x:Key="StatusBarForegroundBrush" Color="#FFFFFF"/>
+    
+    <!-- Control Button Colors -->
+    <SolidColorBrush x:Key="ControlButtonForegroundBrush" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="ControlButtonHoverBackgroundBrush" Color="#3E3E42"/>
+    <SolidColorBrush x:Key="CloseButtonHoverBackgroundBrush" Color="#E81123"/>
+    
+    <!-- Address Bar Colors -->
+    <SolidColorBrush x:Key="AddressBarBackgroundBrush" Color="#3C3C3C"/>
+    <SolidColorBrush x:Key="AddressBarForegroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="AddressBarBorderBrush" Color="#5A5A5A"/>
+    <SolidColorBrush x:Key="AddressBarFocusBorderBrush" Color="#007ACC"/>
+    
+    <!-- Window Control Button Styles -->
+    <Style x:Key="WindowControlButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource ControlButtonForegroundBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Width" Value="46"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource ControlButtonHoverBackgroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#4A4A4A"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Close Button Style (Red hover) -->
+    <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WindowControlButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="0,8,0,0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource CloseButtonHoverBackgroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#C50E1F"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Navigation Button Style -->
+    <Style x:Key="NavigationButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource NavigationButtonForegroundBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource NavigationButtonHoverBackgroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#4A4A4A"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Address Bar Style -->
+    <Style x:Key="AddressBarStyle" TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource AddressBarBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AddressBarForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AddressBarBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                     Margin="{TemplateBinding Padding}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource AddressBarFocusBorderBrush}"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="#6A6A6A"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Scrollbar Styles for Dark Theme -->
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="#2D2D30"/>
+        <Setter Property="Foreground" Value="#686868"/>
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}"/>
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                            <Track.Thumb>
+                                <Thumb Background="#686868" BorderThickness="0"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>
