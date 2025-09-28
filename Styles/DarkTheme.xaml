@@ -221,43 +221,74 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6,6,0,0">
-                        <Grid Margin="12,0,8,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="20"/>
-                            </Grid.ColumnDefinitions>
+                            CornerRadius="6,6,0,0"
+                            Name="PART_Border">
+                        <Grid>
+                            <!-- Content overlay that doesn't interfere with hit testing -->
+                            <Grid Margin="12,0,28,0" IsHitTestVisible="False">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Favicon placeholder -->
+                                <Ellipse Grid.Column="0" 
+                                        Width="12" Height="12"
+                                        Fill="#666"
+                                        VerticalAlignment="Center"/>
+                                
+                                <!-- Tab title -->
+                                <TextBlock Grid.Column="1"
+                                          Text="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          FontSize="{TemplateBinding FontSize}"
+                                          FontFamily="{TemplateBinding FontFamily}"
+                                          VerticalAlignment="Center"
+                                          Margin="8,0,0,0"
+                                          TextTrimming="CharacterEllipsis"/>
+                            </Grid>
                             
-                            <!-- Favicon placeholder -->
-                            <Ellipse Grid.Column="0" 
-                                    Width="12" Height="12"
-                                    Fill="#666"
-                                    VerticalAlignment="Center"/>
-                            
-                            <!-- Tab title -->
-                            <TextBlock Grid.Column="1"
-                                      Text="{TemplateBinding Content}"
-                                      Foreground="{TemplateBinding Foreground}"
-                                      FontSize="{TemplateBinding FontSize}"
-                                      FontFamily="{TemplateBinding FontFamily}"
-                                      VerticalAlignment="Center"
-                                      Margin="8,0,8,0"
-                                      TextTrimming="CharacterEllipsis"/>
-                            
-                            <!-- Close button -->
-                            <Button Grid.Column="2"
-                                   x:Name="CloseTabButton"
-                                   Width="16" Height="16"
+                            <!-- Close button positioned absolutely -->
+                            <Button x:Name="CloseTabButton"
+                                   Width="20" Height="20"
                                    Background="Transparent"
                                    BorderThickness="0"
                                    VerticalAlignment="Center"
-                                   Opacity="0.7">
-                                <Path Data="M1,1 L11,11 M11,1 L1,11" 
-                                      Stroke="{TemplateBinding Foreground}" 
-                                      StrokeThickness="1.5"
-                                      Width="10" Height="10"/>
+                                   HorizontalAlignment="Right"
+                                   Margin="0,0,4,0"
+                                   Cursor="Hand"
+                                   Content="×"
+                                   FontSize="12"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   Padding="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderThickness="0"
+                                                CornerRadius="3"
+                                                Width="20" Height="20">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#E81123"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="#C50E1F"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
                             </Button>
+                            
+                            <!-- Invisible overlay to ensure entire tab area is clickable -->
+                            <Border Background="Transparent" 
+                                   Margin="0,0,24,0"
+                                   Cursor="Hand"/>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>

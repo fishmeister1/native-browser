@@ -346,11 +346,20 @@ namespace NativeBrowser
 
         private void Tab_Click(object sender, RoutedEventArgs e)
         {
-            var clickedButton = sender as Button;
-            var tab = _tabs.FirstOrDefault(t => t.TabButton == clickedButton);
-            if (tab != null)
+            // Only handle clicks if the sender is the tab button itself
+            if (sender is Button clickedButton)
             {
-                SwitchToTab(tab);
+                // Check if the click came from the close button
+                if (e.OriginalSource is Button closeBtn && closeBtn.Name == "CloseTabButton")
+                {
+                    return; // Let the close button handler deal with it
+                }
+                
+                var tab = _tabs.FirstOrDefault(t => t.TabButton == clickedButton);
+                if (tab != null)
+                {
+                    SwitchToTab(tab);
+                }
             }
         }
 
@@ -479,9 +488,9 @@ namespace NativeBrowser
                 var closeButton = FindVisualChildByName<Button>(tabButton, "CloseTabButton");
                 if (closeButton != null)
                 {
-                    closeButton.Click += (sender, args) =>
+                    closeButton.PreviewMouseLeftButtonDown += (sender, args) =>
                     {
-                        args.Handled = true; // Prevent tab selection
+                        args.Handled = true; // Prevent event bubbling to tab button
                         CloseTab(tab);
                     };
                 }
