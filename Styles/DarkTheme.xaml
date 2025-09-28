@@ -39,10 +39,10 @@
     <SolidColorBrush x:Key="AddressBarFocusBorderBrush" Color="#007ACC"/>
     
     <!-- Tab Colors -->
-    <SolidColorBrush x:Key="TabBackgroundBrush" Color="#2D2D30"/>
-    <SolidColorBrush x:Key="TabActiveBackgroundBrush" Color="#252526"/>
+    <SolidColorBrush x:Key="TabBackgroundBrush" Color="#252526"/>
+    <SolidColorBrush x:Key="TabActiveBackgroundBrush" Color="#2D2D30"/>
     <SolidColorBrush x:Key="TabHoverBackgroundBrush" Color="#3E3E42"/>
-    <SolidColorBrush x:Key="TabForegroundBrush" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="TabForegroundBrush" Color="#AAAAAA"/>
     <SolidColorBrush x:Key="TabActiveForegroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="TabBorderBrush" Color="#3E3E42"/>
     <SolidColorBrush x:Key="NewTabButtonBrush" Color="#4A4A4A"/>

@@ -188,9 +188,9 @@ namespace NativeBrowser
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (WebView.CanGoBack)
+            if (_currentTab?.WebView != null && _currentTab.WebView.CanGoBack)
             {
-                WebView.GoBack();
+                _currentTab.WebView.GoBack();
                 StatusText.Text = "Navigating back";
             }
             else
@@ -201,9 +201,9 @@ namespace NativeBrowser
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
-            if (WebView.CanGoForward)
+            if (_currentTab?.WebView != null && _currentTab.WebView.CanGoForward)
             {
-                WebView.GoForward();
+                _currentTab.WebView.GoForward();
                 StatusText.Text = "Navigating forward";
             }
             else
@@ -214,8 +214,11 @@ namespace NativeBrowser
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            WebView.Reload();
-            StatusText.Text = "Refreshing page";
+            if (_currentTab?.WebView != null)
+            {
+                _currentTab.WebView.Reload();
+                StatusText.Text = "Refreshing page";
+            }
         }
 
         private void AddressBar_KeyDown(object sender, KeyEventArgs e)
@@ -267,14 +270,18 @@ namespace NativeBrowser
         {
             try
             {
-                // Ensure URL has a protocol
-                if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                if (_currentTab?.WebView != null)
                 {
-                    url = "https://" + url;
-                }
+                    // Ensure URL has a protocol
+                    if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                    {
+                        url = "https://" + url;
+                    }
 
-                WebView.Source = new Uri(url);
-                StatusText.Text = $"Navigating to: {url}";
+                    _currentTab.WebView.Source = new Uri(url);
+                    _currentTab.Url = url;
+                    StatusText.Text = $"Navigating to: {url}";
+                }
             }
             catch (Exception ex)
             {
@@ -284,36 +291,42 @@ namespace NativeBrowser
 
         private void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            StatusText.Text = $"Loading: {e.Uri}";
-            AddressBar.Text = e.Uri;
-            
-            // Update navigation button states
-            Dispatcher.BeginInvoke(() =>
+            if (_currentTab?.WebView == sender)
             {
-                BackButton.IsEnabled = WebView.CanGoBack;
-                ForwardButton.IsEnabled = WebView.CanGoForward;
-            });
+                StatusText.Text = $"Loading: {e.Uri}";
+                AddressBar.Text = e.Uri;
+                
+                // Update navigation button states
+                Dispatcher.BeginInvoke(() =>
+                {
+                    BackButton.IsEnabled = _currentTab.WebView.CanGoBack;
+                    ForwardButton.IsEnabled = _currentTab.WebView.CanGoForward;
+                });
+            }
         }
 
         private void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            if (e.IsSuccess)
+            if (_currentTab?.WebView == sender)
             {
-                StatusText.Text = "Page loaded successfully";
-            }
-            else
-            {
-                StatusText.Text = $"Navigation failed: {e.WebErrorStatus}";
-            }
-            
-            // Update navigation button states
-            BackButton.IsEnabled = WebView.CanGoBack;
-            ForwardButton.IsEnabled = WebView.CanGoForward;
-            
-            // Update address bar with final URL
-            if (WebView.Source != null)
-            {
-                AddressBar.Text = WebView.Source.ToString();
+                if (e.IsSuccess)
+                {
+                    StatusText.Text = "Page loaded successfully";
+                }
+                else
+                {
+                    StatusText.Text = $"Navigation failed: {e.WebErrorStatus}";
+                }
+                
+                // Update navigation button states
+                BackButton.IsEnabled = _currentTab.WebView.CanGoBack;
+                ForwardButton.IsEnabled = _currentTab.WebView.CanGoForward;
+                
+                // Update address bar with final URL
+                if (_currentTab.WebView.Source != null)
+                {
+                    AddressBar.Text = _currentTab.WebView.Source.ToString();
+                }
             }
         }
 
@@ -325,8 +338,8 @@ namespace NativeBrowser
         {
             var firstTab = new TabItem
             {
-                Title = "OpticaAI",
-                Url = "https://opticaai.org/",
+                Title = "Google",
+                Url = "https://google.com/",
                 WebView = WebView,
                 TabButton = DefaultTab,
                 IsActive = true
@@ -335,13 +348,16 @@ namespace NativeBrowser
             _tabs.Add(firstTab);
             _currentTab = firstTab;
             
+            // Ensure the default tab shows as active
+            DefaultTab.Tag = "Active";
+            
             // Set up close button click handler for the default tab
             SetupTabCloseHandler(DefaultTab, firstTab);
         }
 
         private void NewTab_Click(object sender, RoutedEventArgs e)
         {
-            CreateNewTab("New Tab", "https://opticaai.org/");
+            CreateNewTab("New Tab", "https://google.com/");
         }
 
         private void Tab_Click(object sender, RoutedEventArgs e)
@@ -349,16 +365,34 @@ namespace NativeBrowser
             // Only handle clicks if the sender is the tab button itself
             if (sender is Button clickedButton)
             {
-                // Check if the click came from the close button
+                // Check if the click came from the close button - don't switch tabs
                 if (e.OriginalSource is Button closeBtn && closeBtn.Name == "CloseTabButton")
                 {
+                    StatusText.Text = "Close button clicked - not switching tabs";
                     return; // Let the close button handler deal with it
+                }
+                
+                // Check if click came from somewhere inside close button
+                var element = e.OriginalSource as FrameworkElement;
+                while (element != null)
+                {
+                    if (element is Button btn && btn.Name == "CloseTabButton")
+                    {
+                        StatusText.Text = "Close button area clicked - not switching tabs";
+                        return;
+                    }
+                    element = element.Parent as FrameworkElement;
                 }
                 
                 var tab = _tabs.FirstOrDefault(t => t.TabButton == clickedButton);
                 if (tab != null)
                 {
+                    StatusText.Text = $"Switching to tab: {tab.Title} (Button: {clickedButton.Content})";
                     SwitchToTab(tab);
+                }
+                else
+                {
+                    StatusText.Text = $"Tab not found for button: {clickedButton.Content}";
                 }
             }
         }
@@ -391,8 +425,20 @@ namespace NativeBrowser
             SetupTabCloseHandler(tabButton, newTab);
             
             // Set up WebView event handlers
-            newWebView.NavigationStarting += WebView_NavigationStarting;
-            newWebView.NavigationCompleted += WebView_NavigationCompleted;
+            newWebView.NavigationStarting += (s, e) => 
+            {
+                if (_currentTab?.WebView == s)
+                {
+                    WebView_NavigationStarting(s, e);
+                }
+            };
+            newWebView.NavigationCompleted += (s, e) => 
+            {
+                if (_currentTab?.WebView == s)
+                {
+                    WebView_NavigationCompleted(s, e);
+                }
+            };
 
             // Add tab button to container (before the new tab button)
             int newTabButtonIndex = TabContainer.Children.IndexOf(NewTabButton);
@@ -419,7 +465,13 @@ namespace NativeBrowser
 
         private void SwitchToTab(TabItem tab)
         {
-            if (_currentTab == tab) return;
+            if (_currentTab == tab) 
+            {
+                StatusText.Text = $"Already on tab: {tab.Title}";
+                return;
+            }
+
+            StatusText.Text = $"Switching from '{_currentTab?.Title ?? "none"}' to '{tab.Title}'";
 
             // Hide current WebView
             if (_currentTab != null)
@@ -447,12 +499,16 @@ namespace NativeBrowser
             {
                 AddressBar.Text = tab.WebView.Source.ToString();
             }
+            else
+            {
+                AddressBar.Text = tab.Url;
+            }
 
             // Update navigation buttons
             BackButton.IsEnabled = tab.WebView.CanGoBack;
             ForwardButton.IsEnabled = tab.WebView.CanGoForward;
 
-            StatusText.Text = $"Switched to tab: {tab.Title}";
+            StatusText.Text = $"Now on tab: {tab.Title}";
         }
 
         private Border GetWebViewContainer()
@@ -488,11 +544,16 @@ namespace NativeBrowser
                 var closeButton = FindVisualChildByName<Button>(tabButton, "CloseTabButton");
                 if (closeButton != null)
                 {
-                    closeButton.PreviewMouseLeftButtonDown += (sender, args) =>
+                    closeButton.Click += (sender, args) =>
                     {
                         args.Handled = true; // Prevent event bubbling to tab button
+                        StatusText.Text = $"Closing tab: {tab.Title}";
                         CloseTab(tab);
                     };
+                }
+                else
+                {
+                    StatusText.Text = $"Close button not found for tab: {tab.Title}";
                 }
             };
         }

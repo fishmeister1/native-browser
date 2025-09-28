@@ -48,7 +48,7 @@
                            Margin="10,0,0,0">
                     
                     <!-- Default tab -->
-                    <Button Content="OpticaAI"
+                    <Button Content="Google"
                            Style="{StaticResource TabItemStyle}"
                            Tag="Active"
                            x:Name="DefaultTab"
