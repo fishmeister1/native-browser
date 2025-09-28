@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
@@ -23,6 +24,7 @@ namespace NativeBrowser
         private Rect _restoreBounds;
         private List<TabItem> _tabs = new List<TabItem>();
         private TabItem _currentTab = null;
+        private bool _isSidePanelOpen = false;
 
         public MainWindow()
         {
@@ -231,8 +233,61 @@ namespace NativeBrowser
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Show menu
-            StatusText.Text = "Menu button clicked";
+            ToggleSidePanel();
+        }
+        
+        private void ToggleSidePanel()
+        {
+            _isSidePanelOpen = !_isSidePanelOpen;
+            
+            if (_isSidePanelOpen)
+            {
+                OpenSidePanel();
+            }
+            else
+            {
+                CloseSidePanel();
+            }
+        }
+        
+        private void OpenSidePanel()
+        {
+            // Animate side panel opening
+            var widthAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 300,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            
+            SidePanel.BeginAnimation(Border.WidthProperty, widthAnimation);
+            
+            // Transform menu icon to chevron
+            HamburgerIcon.Visibility = Visibility.Collapsed;
+            ChevronIcon.Visibility = Visibility.Visible;
+            
+            StatusText.Text = "Side panel opened";
+        }
+        
+        private void CloseSidePanel()
+        {
+            // Animate side panel closing
+            var widthAnimation = new DoubleAnimation
+            {
+                From = 300,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            
+            SidePanel.BeginAnimation(Border.WidthProperty, widthAnimation);
+            
+            // Transform chevron back to hamburger icon
+            ChevronIcon.Visibility = Visibility.Collapsed;
+            HamburgerIcon.Visibility = Visibility.Visible;
+            
+            StatusText.Text = "Side panel closed";
         }
 
         #endregion

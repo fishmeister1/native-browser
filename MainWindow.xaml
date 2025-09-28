@@ -108,9 +108,13 @@
                     <RowDefinition Height="*"/> <!-- Browser Content -->
                     <RowDefinition Height="25"/> <!-- Status Bar -->
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/> <!-- Main Content -->
+                    <ColumnDefinition Width="Auto"/> <!-- Side Panel -->
+                </Grid.ColumnDefinitions>
                 
                 <!-- Navigation Bar -->
-                <Grid Grid.Row="0" Background="{StaticResource NavigationBarBackgroundBrush}">
+                <Grid Grid.Row="0" Grid.ColumnSpan="2" Background="{StaticResource NavigationBarBackgroundBrush}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
@@ -173,16 +177,26 @@
                             ToolTip="Menu"
                             Margin="10,15,10,15"
                             Click="MenuButton_Click">
-                        <StackPanel>
-                            <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
-                            <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
-                            <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
-                        </StackPanel>
+                        <Grid>
+                            <!-- Hamburger Lines -->
+                            <StackPanel x:Name="HamburgerIcon">
+                                <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
+                                <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
+                                <Rectangle Height="2" Width="12" Fill="{StaticResource NavigationButtonForegroundBrush}" Margin="0,1"/>
+                            </StackPanel>
+                            <!-- Chevron Up -->
+                            <Path x:Name="ChevronIcon" 
+                                  Data="M2,8 L6,4 L10,8" 
+                                  Stroke="{StaticResource NavigationButtonForegroundBrush}" 
+                                  StrokeThickness="2"
+                                  Fill="Transparent"
+                                  Visibility="Collapsed"/>
+                        </Grid>
                     </Button>
                 </Grid>
                 
                 <!-- Browser Content -->
-                <Border Grid.Row="1" 
+                <Border Grid.Row="1" Grid.Column="0"
                         x:Name="WebViewContainer"
                         Background="{StaticResource BrowserContentBackgroundBrush}"
                         Margin="2">
@@ -192,8 +206,21 @@
                                  NavigationStarting="WebView_NavigationStarting"/>
                 </Border>
                 
+                <!-- Side Panel -->
+                <Border Grid.Row="1" Grid.Column="1"
+                        x:Name="SidePanel"
+                        Background="{StaticResource NavigationBarBackgroundBrush}"
+                        Width="0"
+                        BorderBrush="{StaticResource TabBorderBrush}"
+                        BorderThickness="1,0,0,0">
+                    <!-- Empty container for now -->
+                    <Grid x:Name="SidePanelContent">
+                        <!-- Content will be added later -->
+                    </Grid>
+                </Border>
+                
                 <!-- Status Bar -->
-                <Grid Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}">
+                <Grid Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource StatusBarBackgroundBrush}">
                     <TextBlock Text="Ready"
                               Foreground="{StaticResource StatusBarForegroundBrush}"
                               FontSize="11"
