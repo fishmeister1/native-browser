@@ -38,6 +38,15 @@
     <SolidColorBrush x:Key="AddressBarBorderBrush" Color="#5A5A5A"/>
     <SolidColorBrush x:Key="AddressBarFocusBorderBrush" Color="#007ACC"/>
     
+    <!-- Tab Colors -->
+    <SolidColorBrush x:Key="TabBackgroundBrush" Color="#2D2D30"/>
+    <SolidColorBrush x:Key="TabActiveBackgroundBrush" Color="#252526"/>
+    <SolidColorBrush x:Key="TabHoverBackgroundBrush" Color="#3E3E42"/>
+    <SolidColorBrush x:Key="TabForegroundBrush" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="TabActiveForegroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TabBorderBrush" Color="#3E3E42"/>
+    <SolidColorBrush x:Key="NewTabButtonBrush" Color="#4A4A4A"/>
+    
     <!-- Window Control Button Styles -->
     <Style x:Key="WindowControlButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
@@ -122,9 +131,11 @@
         <Setter Property="Foreground" Value="{StaticResource AddressBarForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource AddressBarBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Padding" Value="0,0,0,0"/>
         <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -132,9 +143,29 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="4">
-                        <ScrollViewer x:Name="PART_ContentHost" 
-                                     Margin="{TemplateBinding Padding}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Decorative Star Symbol -->
+                            <TextBlock Grid.Column="0"
+                                      Text="✦"
+                                      Foreground="{StaticResource AddressBarForegroundBrush}"
+                                      FontSize="14"
+                                      VerticalAlignment="Center"
+                                      Margin="8,0,4,0"
+                                      Opacity="0.7"/>
+                            
+                            <!-- Address Bar Input -->
+                            <ScrollViewer Grid.Column="1"
+                                         x:Name="PART_ContentHost" 
+                                         Margin="{TemplateBinding Padding}"
+                                         VerticalAlignment="Center"
+                                         VerticalScrollBarVisibility="Hidden"
+                                         HorizontalScrollBarVisibility="Auto"/>
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsFocused" Value="True">
@@ -166,6 +197,111 @@
                             </Track.Thumb>
                         </Track>
                     </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Tab Styles -->
+    <Style x:Key="TabItemStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource TabBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TabForegroundBrush}"/>
+        <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TabBorderBrush}"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="MinWidth" Value="180"/>
+        <Setter Property="MaxWidth" Value="240"/>
+        <Setter Property="Margin" Value="0,8,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6,6,0,0">
+                        <Grid Margin="12,0,8,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Favicon placeholder -->
+                            <Ellipse Grid.Column="0" 
+                                    Width="12" Height="12"
+                                    Fill="#666"
+                                    VerticalAlignment="Center"/>
+                            
+                            <!-- Tab title -->
+                            <TextBlock Grid.Column="1"
+                                      Text="{TemplateBinding Content}"
+                                      Foreground="{TemplateBinding Foreground}"
+                                      FontSize="{TemplateBinding FontSize}"
+                                      FontFamily="{TemplateBinding FontFamily}"
+                                      VerticalAlignment="Center"
+                                      Margin="8,0,8,0"
+                                      TextTrimming="CharacterEllipsis"/>
+                            
+                            <!-- Close button -->
+                            <Button Grid.Column="2"
+                                   x:Name="CloseTabButton"
+                                   Width="16" Height="16"
+                                   Background="Transparent"
+                                   BorderThickness="0"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.7">
+                                <Path Data="M1,1 L11,11 M11,1 L1,11" 
+                                      Stroke="{TemplateBinding Foreground}" 
+                                      StrokeThickness="1.5"
+                                      Width="10" Height="10"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource TabHoverBackgroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="Tag" Value="Active">
+                            <Setter Property="Background" Value="{StaticResource TabActiveBackgroundBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TabActiveForegroundBrush}"/>
+                            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- New Tab Button Style -->
+    <Style x:Key="NewTabButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource ControlButtonForegroundBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Margin" Value="4,8,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <Path Data="M6,2 L6,10 M2,6 L10,6" 
+                              Stroke="{TemplateBinding Foreground}" 
+                              StrokeThickness="2"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource NewTabButtonBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#5A5A5A"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

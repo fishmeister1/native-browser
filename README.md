@@ -19,19 +19,20 @@ A custom native Windows application with modern dark gray theme, built using WPF
 - **High Contrast**: Optimized for readability and accessibility
 
 ### Browser-like Interface
-- **Navigation Bar**: Back, forward, refresh buttons with modern icons
-- **Address Bar**: Styled text input with focus effects and keyboard navigation
-- **Content Area**: Placeholder for web content (ready for WebView integration)
-- **Status Bar**: Information display at the bottom
+- **Navigation Bar**: Back, forward, refresh buttons with full WebView navigation
+- **Address Bar**: Styled text input with live URL updates and keyboard navigation
+- **WebView2 Integration**: Full web browsing capability with https://opticaai.org/ as default
+- **Status Bar**: Real-time navigation status and page loading information
 - **Menu Button**: Extensible menu system
 
 ## Technologies Used
 
-- **C#**: Backend logic and window behavior
+- **C#**: Backend logic, window behavior, and WebView2 integration
 - **XAML**: UI layout and structure
 - **WPF**: Windows Presentation Foundation framework
+- **WebView2**: Microsoft Edge WebView2 for web content rendering
 - **CSS**: Design reference and styling concepts
-- **.NET 6**: Target framework with Windows-specific features
+- **.NET 10**: Target framework with Windows-specific features
 
 ## Project Structure
 
@@ -111,11 +112,19 @@ The application is structured for easy extension:
 - ✅ Window state management
 
 ### UI Components
-- ✅ Modern navigation bar with icon buttons
-- ✅ Styled address bar with focus effects
+- ✅ Modern navigation bar with functional icon buttons
+- ✅ Styled address bar with live URL updates and navigation
 - ✅ Responsive layout system
-- ✅ Status bar for information display
+- ✅ Status bar with real-time page loading information
 - ✅ Custom scrollbar styling
+
+### Web Browsing
+- ✅ WebView2 integration for full web browsing capability
+- ✅ Navigation controls (back, forward, refresh) with proper state management
+- ✅ URL navigation from address bar (Enter key or click)
+- ✅ Automatic URL protocol detection (adds https:// if missing)
+- ✅ Default navigation to https://opticaai.org/
+- ✅ Real-time navigation status updates
 
 ### Theme System
 - ✅ Complete dark gray theme
@@ -126,7 +135,7 @@ The application is structured for easy extension:
 
 ## Future Enhancements
 
-- [ ] WebView2 integration for actual web browsing
+- [ ] Tab system for multiple pages
 - [ ] Tab system for multiple pages
 - [ ] Bookmark management
 - [ ] Settings and preferences panel
