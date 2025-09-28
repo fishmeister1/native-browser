@@ -6,10 +6,16 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>NativeBrowser</AssemblyName>
     <RootNamespace>NativeBrowser</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2045.28" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+    <Resource Include="Assets\app.ico" />
   </ItemGroup>
 
 </Project>
