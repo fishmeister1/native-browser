@@ -213,9 +213,110 @@
                         Width="0"
                         BorderBrush="{StaticResource TabBorderBrush}"
                         BorderThickness="1,0,0,0">
-                    <!-- Empty container for now -->
                     <Grid x:Name="SidePanelContent">
-                        <!-- Content will be added later -->
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Main content area (empty for now) -->
+                        <Grid Grid.Row="0">
+                            <!-- Content will be added later -->
+                        </Grid>
+                        
+                        <!-- Floating Input Field -->
+                        <Border Grid.Row="1" 
+                                x:Name="MessageInputContainer"
+                                Background="#2A2A2A"
+                                CornerRadius="8"
+                                Margin="12,8,12,12"
+                                BorderBrush="#3E3E3E"
+                                BorderThickness="1"
+                                MinHeight="50"
+                                VerticalAlignment="Bottom">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Text Input -->
+                                <TextBox Grid.Column="0"
+                                         x:Name="MessageInput"
+                                         Background="Transparent"
+                                         Foreground="#CCCCCC"
+                                         BorderThickness="0"
+                                         Padding="12,10,8,10"
+                                         FontSize="13"
+                                         FontFamily="Segoe UI"
+                                         VerticalAlignment="Top"
+                                         MinHeight="34"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Hidden"
+                                         Text="Message Optica..."
+                                         GotFocus="MessageInput_GotFocus"
+                                         LostFocus="MessageInput_LostFocus"
+                                         KeyDown="MessageInput_KeyDown"
+                                         TextChanged="MessageInput_TextChanged"/>
+                                
+                                <!-- Action Buttons -->
+                                <StackPanel Grid.Column="1" 
+                                           Orientation="Horizontal"
+                                           Margin="0,0,8,0">
+                                    
+                                    <!-- Attachment/Image Button -->
+                                    <Button x:Name="AttachmentButton"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Width="32" Height="32"
+                                            Cursor="Hand"
+                                            ToolTip="Attach Image"
+                                            Click="AttachmentButton_Click">
+                                        <Rectangle Width="16" Height="14"
+                                                  Fill="#CCCCCC">
+                                            <Rectangle.OpacityMask>
+                                                <VisualBrush>
+                                                    <VisualBrush.Visual>
+                                                        <Canvas Width="16" Height="14">
+                                                            <Path Data="M14,2 L14,12 L2,12 L2,2 Z M4,4 L4,6 L6,6 L6,4 Z M2,8 L4,6 L6,8 L10,4 L14,8 L14,10 L2,10 Z" Fill="Black"/>
+                                                        </Canvas>
+                                                    </VisualBrush.Visual>
+                                                </VisualBrush>
+                                            </Rectangle.OpacityMask>
+                                        </Rectangle>
+                                    </Button>
+                                    
+                                    <!-- Microphone Button -->
+                                    <Button x:Name="MicrophoneButton"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Width="32" Height="32"
+                                            Cursor="Hand"
+                                            ToolTip="Voice Message"
+                                            Click="MicrophoneButton_Click">
+                                        <Path Data="M8,2 C9.1,2 10,2.9 10,4 L10,8 C10,9.1 9.1,10 8,10 C6.9,10 6,9.1 6,8 L6,4 C6,2.9 6.9,2 8,2 Z M12,8 C12,10.7 9.8,12.9 7.1,13 L7.1,15 L11,15 L11,16 L5,16 L5,15 L8.9,15 L8.9,13 C6.2,12.9 4,10.7 4,8 L4,7 L5,7 L5,8 C5,10.2 6.8,12 9,12 C11.2,12 13,10.2 13,8 L13,7 L12,7 L12,8 Z"
+                                              Fill="#CCCCCC"
+                                              Stretch="Uniform"
+                                              Width="14" Height="14"/>
+                                    </Button>
+                                    
+                                    <!-- Send Button -->
+                                    <Button x:Name="SendButton"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Width="32" Height="32"
+                                            Cursor="Hand"
+                                            ToolTip="Send Message"
+                                            Click="SendButton_Click">
+                                        <Path Data="M2,21 L23,12 L2,3 L2,10 L17,12 L2,14 Z"
+                                              Fill="#CCCCCC"
+                                              Stretch="Uniform"
+                                              Width="16" Height="16"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Border>
                 

@@ -10,6 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using System.Globalization;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -288,6 +289,122 @@ namespace NativeBrowser
             HamburgerIcon.Visibility = Visibility.Visible;
             
             StatusText.Text = "Side panel closed";
+        }
+
+        #endregion
+        
+        #region Message Input Handlers
+        
+        private void MessageInput_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (MessageInput.Text == "Message Optica...")
+            {
+                MessageInput.Text = "";
+                MessageInput.Foreground = new SolidColorBrush(Colors.White);
+                MessageInput.Height = 34; // Reset to minimum height
+                MessageInput.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            }
+        }
+        
+        private void MessageInput_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(MessageInput.Text))
+            {
+                MessageInput.Text = "Message Optica...";
+                MessageInput.Foreground = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC));
+                MessageInput.Height = 34; // Reset to minimum height
+                MessageInput.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            }
+        }
+        
+        private void MessageInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Shift) != ModifierKeys.Shift)
+            {
+                e.Handled = true;
+                SendMessage();
+            }
+        }
+        
+        private void MessageInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (MessageInput.Text != "Message Optica...")
+            {
+                AutoResizeMessageInput();
+            }
+        }
+        
+        private void AutoResizeMessageInput()
+        {
+            var textBox = MessageInput;
+            
+            // Calculate line height (font size + some padding)
+            double lineHeight = textBox.FontSize * 1.3; // Standard line height multiplier
+            
+            // Count the number of lines in the text
+            int lineCount = Math.Max(1, textBox.Text.Split('\n').Length);
+            
+            // Calculate height for the content
+            double contentHeight = lineCount * lineHeight;
+            double totalHeight = contentHeight + textBox.Padding.Top + textBox.Padding.Bottom;
+            
+            // Maximum height for 10 lines
+            double maxHeightFor10Lines = (10 * lineHeight) + textBox.Padding.Top + textBox.Padding.Bottom;
+            
+            // Determine final height and scrollbar visibility
+            double newHeight;
+            if (lineCount <= 10)
+            {
+                // Show full content, no scrollbar
+                newHeight = Math.Max(34, totalHeight);
+                textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            }
+            else
+            {
+                // Cap at 10 lines height, show scrollbar
+                newHeight = maxHeightFor10Lines;
+                textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            }
+            
+            // Animate the height change
+            var heightAnimation = new DoubleAnimation
+            {
+                From = textBox.ActualHeight,
+                To = newHeight,
+                Duration = TimeSpan.FromMilliseconds(150),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            
+            textBox.BeginAnimation(TextBox.HeightProperty, heightAnimation);
+        }
+        
+        private void AttachmentButton_Click(object sender, RoutedEventArgs e)
+        {
+            StatusText.Text = "Attachment button clicked";
+            // TODO: Implement file attachment functionality
+        }
+        
+        private void MicrophoneButton_Click(object sender, RoutedEventArgs e)
+        {
+            StatusText.Text = "Microphone button clicked";
+            // TODO: Implement voice recording functionality
+        }
+        
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            SendMessage();
+        }
+        
+        private void SendMessage()
+        {
+            if (!string.IsNullOrWhiteSpace(MessageInput.Text) && MessageInput.Text != "Message Optica...")
+            {
+                StatusText.Text = $"Message sent: {MessageInput.Text}";
+                MessageInput.Text = "";
+                MessageInput.Height = 34;
+                MessageInput.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+                MessageInput_LostFocus(null, null); // Reset placeholder
+            }
         }
 
         #endregion
