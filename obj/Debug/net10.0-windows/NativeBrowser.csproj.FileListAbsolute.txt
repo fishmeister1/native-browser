@@ -9,6 +9,7 @@ C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\NativeB
 C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Core.dll
 C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.WinForms.dll
 C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Microsoft.Web.WebView2.Wpf.dll
+C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Newtonsoft.Json.dll
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\NativeBrowser.csproj.AssemblyReference.cache
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\MainWindow.baml
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\Styles\DarkTheme.baml
@@ -29,4 +30,3 @@ C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\refint\
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\NativeBrowser.pdb
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\NativeBrowser.genruntimeconfig.cache
 C:\Users\jackf\Documents\GitHub\native-browser\obj\Debug\net10.0-windows\ref\NativeBrowser.dll
-C:\Users\jackf\Documents\GitHub\native-browser\bin\Debug\net10.0-windows\Newtonsoft.Json.dll

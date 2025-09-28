@@ -434,12 +434,12 @@ namespace NativeBrowser
         
         #region AI Integration
         
-        private readonly string[] _browserControlKeywords = { "show", "play", "research", "find" };
+        private readonly string[] _browserControlKeywords = { "/show", "/play", "/research", "/find" };
         
         private bool IsBrowserControlRequest(string message)
         {
             var lowerMessage = message.ToLower();
-            return Array.Exists(_browserControlKeywords, keyword => lowerMessage.Contains(keyword));
+            return Array.Exists(_browserControlKeywords, keyword => lowerMessage.StartsWith(keyword + " ") || lowerMessage.Equals(keyword));
         }
         
         private async Task ProcessAIMessage(string userMessage)
@@ -499,15 +499,8 @@ namespace NativeBrowser
                             return;
                         }
                         
-                        // Display AI thinking, action, and explanation
-                        if (!string.IsNullOrEmpty(actionResponse.Thinking))
-                            AddAIMessage(actionResponse.Thinking, "Thinking");
-                        
-                        if (!string.IsNullOrEmpty(actionResponse.Action))
-                            AddAIMessage(actionResponse.Action, "Action");
-                        
-                        if (!string.IsNullOrEmpty(actionResponse.Explanation))
-                            AddAIMessage(actionResponse.Explanation, "Reasoning");
+                        // Display AI messages sequentially with delays
+                        await DisplayAIMessagesSequentially(actionResponse);
                         
                         // Navigate to URL if provided
                         if (!string.IsNullOrEmpty(actionResponse.Url))
@@ -552,6 +545,27 @@ namespace NativeBrowser
             }
         }
         
+        private async Task DisplayAIMessagesSequentially(BrowserActionResponse actionResponse)
+        {
+            var messages = new List<(string content, string type)>();
+            
+            if (!string.IsNullOrEmpty(actionResponse.Thinking))
+                messages.Add((actionResponse.Thinking, "Thinking"));
+            
+            if (!string.IsNullOrEmpty(actionResponse.Action))
+                messages.Add((actionResponse.Action, "Action"));
+            
+            if (!string.IsNullOrEmpty(actionResponse.Explanation))
+                messages.Add((actionResponse.Explanation, "Reasoning"));
+            
+            // Display messages one by one with a delay
+            foreach (var (content, type) in messages)
+            {
+                AddAIMessage(content, type);
+                await Task.Delay(300); // 300ms delay between messages
+            }
+        }
+        
         private void AddUserMessage(string message)
         {
             var messageBlock = new TextBlock
@@ -581,28 +595,142 @@ namespace NativeBrowser
                 _ => Color.FromRgb(0xFF, 0xFF, 0xFF)
             };
             
-            var headerBlock = new TextBlock
+            // Create gradient brush for thinking, reasoning, debug, and action steps
+            Brush headerBrush;
+            if (messageType == "Thinking" || messageType == "Reasoning" || messageType == "Debug" || messageType == "Action")
             {
-                Text = $"AI {messageType}:",
-                Foreground = new SolidColorBrush(headerColor),
-                FontSize = 12,
-                FontFamily = new FontFamily("Segoe UI"),
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 8, 0, 2)
-            };
-            
-            var messageBlock = new TextBlock
+                var gradientBrush = new LinearGradientBrush();
+                gradientBrush.StartPoint = new System.Windows.Point(0, 0);
+                gradientBrush.EndPoint = new System.Windows.Point(1, 0);
+                gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x4A, 0x9E, 0xFF), 0)); // Blue
+                gradientBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0xFF, 0xFF, 0xFF), 1)); // White
+                headerBrush = gradientBrush;
+            }
+            else
             {
-                Text = message,
-                Foreground = new SolidColorBrush(Colors.White),
-                FontSize = 13,
-                FontFamily = new FontFamily("Segoe UI"),
-                Margin = new Thickness(0, 0, 0, 8),
-                TextWrapping = TextWrapping.Wrap
-            };
+                headerBrush = new SolidColorBrush(headerColor);
+            }
             
-            ChatMessagesPanel.Children.Add(headerBlock);
-            ChatMessagesPanel.Children.Add(messageBlock);
+            // Use smaller font size for thinking, reasoning, debug, and action steps
+            var headerFontSize = (messageType == "Thinking" || messageType == "Reasoning" || messageType == "Debug" || messageType == "Action") ? 8 : 12;
+            var messageFontSize = (messageType == "Thinking" || messageType == "Reasoning" || messageType == "Debug" || messageType == "Action") ? 8 : 13;
+            
+            // Check if this is a collapsible step type
+            bool isCollapsible = messageType == "Thinking" || messageType == "Reasoning" || messageType == "Debug" || messageType == "Action";
+            
+            if (isCollapsible)
+            {
+                // Create collapsible container
+                var containerBorder = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromArgb(0x20, 0x40, 0x40, 0x40)),
+                    CornerRadius = new CornerRadius(4),
+                    Margin = new Thickness(0, 2, 0, 2),
+                    Padding = new Thickness(8, 4, 8, 4),
+                    Cursor = Cursors.Hand
+                };
+                
+                var containerPanel = new StackPanel();
+                
+                // Create header with collapse indicator
+                var headerPanel = new DockPanel();
+                
+                var collapseIndicator = new TextBlock
+                {
+                    Text = "▶",
+                    Foreground = headerBrush,
+                    FontSize = headerFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Margin = new Thickness(0, 0, 6, 0),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                
+                var headerText = new TextBlock
+                {
+                    Text = $"AI {messageType}:",
+                    Foreground = headerBrush,
+                    FontSize = headerFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    FontWeight = FontWeights.Bold,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                
+                // Truncated preview of the message (first line only)
+                var previewText = message.Split('\n')[0];
+                if (previewText.Length > 50) previewText = previewText.Substring(0, 50) + "...";
+                
+                var previewBlock = new TextBlock
+                {
+                    Text = $" - {previewText}",
+                    Foreground = new SolidColorBrush(Color.FromArgb(0xAA, 0xFF, 0xFF, 0xFF)),
+                    FontSize = headerFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    FontStyle = FontStyles.Italic,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                
+                DockPanel.SetDock(collapseIndicator, Dock.Left);
+                DockPanel.SetDock(headerText, Dock.Left);
+                
+                headerPanel.Children.Add(collapseIndicator);
+                headerPanel.Children.Add(headerText);
+                headerPanel.Children.Add(previewBlock);
+                
+                // Full message content (initially collapsed)
+                var fullMessageBlock = new TextBlock
+                {
+                    Text = message,
+                    Foreground = new SolidColorBrush(Colors.White),
+                    FontSize = messageFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Margin = new Thickness(20, 4, 0, 0),
+                    TextWrapping = TextWrapping.Wrap,
+                    Visibility = Visibility.Collapsed
+                };
+                
+                containerPanel.Children.Add(headerPanel);
+                containerPanel.Children.Add(fullMessageBlock);
+                containerBorder.Child = containerPanel;
+                
+                // Add click handler for expand/collapse
+                bool isExpanded = false;
+                containerBorder.MouseLeftButtonUp += (s, e) =>
+                {
+                    isExpanded = !isExpanded;
+                    collapseIndicator.Text = isExpanded ? "▼" : "▶";
+                    fullMessageBlock.Visibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
+                    previewBlock.Visibility = isExpanded ? Visibility.Collapsed : Visibility.Visible;
+                };
+                
+                ChatMessagesPanel.Children.Add(containerBorder);
+            }
+            else
+            {
+                // Regular message display for non-collapsible types
+                var headerBlock = new TextBlock
+                {
+                    Text = $"AI {messageType}:",
+                    Foreground = headerBrush,
+                    FontSize = headerFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    FontWeight = FontWeights.Bold,
+                    Margin = new Thickness(0, 8, 0, 2)
+                };
+                
+                var messageBlock = new TextBlock
+                {
+                    Text = message,
+                    Foreground = new SolidColorBrush(Colors.White),
+                    FontSize = messageFontSize,
+                    FontFamily = new FontFamily("Segoe UI"),
+                    Margin = new Thickness(0, 0, 0, 8),
+                    TextWrapping = TextWrapping.Wrap
+                };
+                
+                ChatMessagesPanel.Children.Add(headerBlock);
+                ChatMessagesPanel.Children.Add(messageBlock);
+            }
+            
             ScrollToBottom();
         }
         
@@ -630,7 +758,7 @@ namespace NativeBrowser
                     for (int i = 0; i < words.Length; i++)
                     {
                         var word = words[i];
-                        var isKeyword = _browserControlKeywords.Any(k => word.ToLower().Contains(k.ToLower()));
+                        var isKeyword = _browserControlKeywords.Any(k => word.ToLower().Equals(k.ToLower()));
                         
                         var run = new Run(word)
                         {
@@ -661,22 +789,22 @@ namespace NativeBrowser
         {
             var lowerMessage = userMessage.ToLower();
             
-            // Determine action based on keywords
-            if (lowerMessage.Contains("video") || lowerMessage.Contains("play"))
+            // Determine action based on slash-prefixed keywords
+            if (lowerMessage.StartsWith("/play"))
             {
-                var searchTerm = ExtractSearchTerm(userMessage, new[] { "play", "video", "show" });
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "/play" });
                 return new BrowserActionResponse
                 {
-                    Thinking = $"User wants to watch a video about '{searchTerm}'. I'll search YouTube for this.",
+                    Thinking = $"User wants to play a video about '{searchTerm}'. I'll search YouTube for this.",
                     Action = $"Searching YouTube for '{searchTerm}' videos",
                     Url = $"https://www.youtube.com/results?search_query={Uri.EscapeDataString(searchTerm)}",
                     Javascript = "",
                     Explanation = $"YouTube is the best platform for finding videos about '{searchTerm}'"
                 };
             }
-            else if (lowerMessage.Contains("research") || lowerMessage.Contains("learn") || lowerMessage.Contains("information"))
+            else if (lowerMessage.StartsWith("/research"))
             {
-                var searchTerm = ExtractSearchTerm(userMessage, new[] { "research", "learn", "information", "about" });
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "/research" });
                 return new BrowserActionResponse
                 {
                     Thinking = $"User wants to research '{searchTerm}'. I'll use Wikipedia for reliable information.",
@@ -686,9 +814,9 @@ namespace NativeBrowser
                     Explanation = $"Wikipedia provides comprehensive information about '{searchTerm}'"
                 };
             }
-            else if (lowerMessage.Contains("find") || lowerMessage.Contains("search"))
+            else if (lowerMessage.StartsWith("/find"))
             {
-                var searchTerm = ExtractSearchTerm(userMessage, new[] { "find", "search", "look", "for" });
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "/find" });
                 return new BrowserActionResponse
                 {
                     Thinking = $"User wants to find information about '{searchTerm}'. I'll use Google search.",
@@ -698,9 +826,9 @@ namespace NativeBrowser
                     Explanation = $"Google search will provide comprehensive results for '{searchTerm}'"
                 };
             }
-            else if (lowerMessage.Contains("show") || lowerMessage.Contains("display"))
+            else if (lowerMessage.StartsWith("/show"))
             {
-                var searchTerm = ExtractSearchTerm(userMessage, new[] { "show", "display", "me" });
+                var searchTerm = ExtractSearchTerm(userMessage, new[] { "/show" });
                 return new BrowserActionResponse
                 {
                     Thinking = $"User wants to see '{searchTerm}'. I'll search Google Images for visual content.",
@@ -712,14 +840,14 @@ namespace NativeBrowser
             }
             else
             {
-                // Default to Google search
+                // This shouldn't happen in fallback for browser control, but just in case
                 return new BrowserActionResponse
                 {
-                    Thinking = $"User asked: '{userMessage}'. I'll search Google for this query.",
+                    Thinking = $"Fallback action for: '{userMessage}'",
                     Action = $"Searching Google for '{userMessage}'",
                     Url = $"https://www.google.com/search?q={Uri.EscapeDataString(userMessage)}",
                     Javascript = "",
-                    Explanation = "Using Google search as the default action for this request"
+                    Explanation = "Using Google search as the fallback action"
                 };
             }
         }
@@ -728,13 +856,16 @@ namespace NativeBrowser
         {
             var lowerMessage = message.ToLower();
             
-            // Find the keyword and extract text after it
+            // Find the slash-prefixed keyword and extract text after it
             foreach (var keyword in keywords)
             {
-                var keywordIndex = lowerMessage.IndexOf(keyword);
+                // Add slash prefix if not already there
+                var slashKeyword = keyword.StartsWith("/") ? keyword : "/" + keyword;
+                var keywordIndex = lowerMessage.IndexOf(slashKeyword);
+                
                 if (keywordIndex >= 0)
                 {
-                    var afterKeyword = message.Substring(keywordIndex + keyword.Length).Trim();
+                    var afterKeyword = message.Substring(keywordIndex + slashKeyword.Length).Trim();
                     
                     // Remove common words from the beginning
                     var commonWords = new[] { "a", "an", "the", "me", "about", "of", "for", "on" };
